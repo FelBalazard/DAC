@@ -6,8 +6,9 @@ K=2/1000
 eff=3
 shift=print(as.numeric(args[1]))
 N=as.numeric(args[2])
-enveff<-c(rep(eff,floor(1000/(1+eff))),rep(1,1000-floor(1000/(1+eff))))
-nsim=100000
+shiftsim=as.numeric(args[3])
+enveff<-c(rep(eff,floor(1000*(1+K*(eff-1))/eff)),rep(1,1000-floor(1000*(1+K*(eff-1))/eff)))
+nsim=10000
 psim<-numeric(nsim)
 evi<-function(x){
   return(log(x/(1-x)))
@@ -19,7 +20,7 @@ calibration.model<-glm(genmod[,1]~genmod[,2],family="binomial")
 genmod[,2]<-evi(calibration.model$fitted.values)
 aucmod=auc(roc(genmod[,2],factor(genmod[,1])))
 for(sim in 1:nsim){
-  set.seed(sim)
+  set.seed(shiftsim*10000+sim)
   riskenv<-sample(log(enveff),floor(N/K),replace=T)
   riskgen<-c(sample(genmod[genmod[,1]==0,2],floor(N/K)-N,replace=T),sample(genmod[genmod[,1]==1,2],N,replace=T))
   risk=riskenv+riskgen
@@ -31,5 +32,5 @@ for(sim in 1:nsim){
     psim[sim]<-1-summary(lm(riskgen[T1D]~(riskenv[T1D])))$coefficients[2,4]/2
   }
 }
-result<-paste(K,N,aucmod,sum(psim<0.05)/nsim)
+result<-paste(K,N,aucmod,shiftsim,sum(psim<0.05)/nsim)
 system(paste("echo ",result," >>result_auc"))

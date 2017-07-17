@@ -7,4 +7,4 @@
 #This script is called by sim.sh
 
  
-Rscript ./sim_K_N.R $1 $2
+Rscript ./sim_K_N.R $1 $2 $3
